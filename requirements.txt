@@ -1,5 +1,8 @@
 flask
-yt-dlp
 flask-cors
-gunicorn
+flask-limiter
 pytube
+youtube-search-python
+youtube_dl
+pydub
+gunicorn

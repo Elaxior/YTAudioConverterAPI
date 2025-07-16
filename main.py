@@ -14,6 +14,7 @@ import youtube_dl
 from pydub import AudioSegment
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+os.makedirs('audios', exist_ok=True)
 
 app = Flask(__name__)
 cors = CORS(app)

@@ -6,3 +6,4 @@ youtube-search-python
 youtube_dl
 pydub
 gunicorn
+pyaudioop

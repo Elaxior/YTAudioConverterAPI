@@ -8,11 +8,9 @@ import json
 from threading import Thread
 import threading
 import yt_dlp
-from pydub import AudioSegment
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import logging
-from pathlib import Path
 
 # Create audios directory if it doesn't exist
 os.makedirs('audios', exist_ok=True)
@@ -41,16 +39,6 @@ def nothing():
     response.headers.add('Content-Type', 'application/json')
     return response
 
-def compress_audio(file_path):
-    """Compress audio file to MP3 format with 256k bitrate"""
-    try:
-        audio = AudioSegment.from_file(file_path)
-        audio.export(file_path, format='mp3', bitrate='256k')
-        logger.info(f"Compressed audio file: {file_path}")
-    except Exception as e:
-        logger.error(f"Error compressing audio {file_path}: {e}")
-        raise
-
 def generate(host_url, video_url):
     """Generate audio file from YouTube video URL"""
     ydl_opts = {
@@ -74,23 +62,17 @@ def generate(host_url, video_url):
             if duration and duration <= 300:  # 5 minutes limit
                 # Download the video
                 info_dict = ydl.extract_info(video_url, download=True)
-                audio_file_path = ydl.prepare_filename(info_dict)
                 thumbnail_url = info_dict.get('thumbnail')
+                video_id = info_dict.get('id')
 
-                file_name, file_extension = os.path.splitext(audio_file_path)
-                file_name = os.path.basename(file_name)
                 expiration_timestamp = int(time.time()) + RETENTION_PERIOD
-
-                # Compress audio
-                mp3_path = f"audios/{file_name}.mp3"
-                compress_audio(mp3_path)
                 
                 # Get base URL dynamically
                 base_url = request.url_root.rstrip('/')
                 
                 response_dict = {
                     'img': thumbnail_url,
-                    'direct_link': f"{base_url}/audios/{file_name}.mp3",
+                    'direct_link': f"{base_url}/audios/{video_id}.mp3",
                     'expiration_timestamp': expiration_timestamp
                 }
                 response_json = json.dumps(response_dict)

@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, Response, stream_with_context, make_response
-from youtubesearchpython import VideosSearch
+from youtube_search import YoutubeSearch
 import os
 import re
 import time
@@ -118,14 +118,14 @@ def generate(host_url, video_url):
 @app.route('/search', methods=['GET'])
 @limiter.limit("5/minute", error_message="Too many requests")
 def search():
-    """Search for YouTube videos"""
+    """Search for YouTube videos using youtube-search library"""
     q = request.args.get('q')
     if q is None or len(q) == 0:
         return jsonify({'error': 'Invalid search query'})
     
     try:
-        s = VideosSearch(q, limit=15)
-        results = s.result()["result"]
+        # Use YoutubeSearch from youtube-search library
+        results = YoutubeSearch(q, max_results=15).to_dict()
         search_results = []
         
         for video in results:
@@ -137,10 +137,13 @@ def search():
                         minutes, seconds = map(int, parts)
                         total_seconds = minutes * 60 + seconds
                         if total_seconds < 300:  # Less than 5 minutes
+                            # Construct full YouTube URL
+                            video_url = f"https://www.youtube.com{video.get('url_suffix', '')}"
+                            
                             search_results.append({
-                                'title': video["title"],
-                                'url': video["link"],
-                                'thumbnail': video["thumbnails"][0]["url"] if video["thumbnails"] else ""
+                                'title': video.get("title", ""),
+                                'url': video_url,
+                                'thumbnail': video.get("thumbnails", [""])[0] if video.get("thumbnails") else ""
                             })
                     except (ValueError, IndexError):
                         continue
@@ -282,7 +285,8 @@ def delete_files_task():
 
 def run():
     """Run the Flask application"""
-    app.run(host='0.0.0.0', debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
 
 def keep_alive():
     """Keep the application alive in a separate thread"""

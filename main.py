@@ -40,7 +40,7 @@ def nothing():
     return response
 
 def generate(host_url, video_url):
-    """Generate audio file from YouTube video URL"""
+    """Generate audio file from YouTube video URL with cookie authentication"""
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': 'audios/%(id)s.%(ext)s',
@@ -51,7 +51,19 @@ def generate(host_url, video_url):
         }],
         'verbose': False,
         'no_warnings': True,
+        # Add cookie support for YouTube authentication
+        'cookiefile': 'cookies.txt',  # Use cookies if available
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
     }
+    
+    # Try to use cookies from browser if available
+    try:
+        ydl_opts['cookiesfrombrowser'] = ('chrome',)
+    except:
+        # If browser cookies are not available, continue without them
+        pass
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -87,6 +99,28 @@ def generate(host_url, video_url):
                 response_json = json.dumps(response_dict)
                 response_bytes = response_json.encode('utf-8')
                 yield response_bytes
+                
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Error processing video {video_url}: {error_msg}")
+        
+        # Check if it's a bot detection error
+        if "Sign in to confirm" in error_msg or "not a bot" in error_msg:
+            response_dict = {
+                'error': 'YouTube bot detection triggered. This video may require authentication. Please try again later or try a different video.',
+                'suggestion': 'Try using a different video URL or wait a few minutes before trying again.'
+            }
+        else:
+            response_dict = {
+                'error': f'Error processing video: {error_msg}'
+            }
+        
+        response_json = json.dumps(response_dict)
+        response_bytes = response_json.encode('utf-8')
+        yield response_bytes
+
+# ... rest of the code remains the same as before
+
                 
     except Exception as e:
         logger.error(f"Error processing video {video_url}: {e}")

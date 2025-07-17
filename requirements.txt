@@ -1,8 +1,7 @@
-flask
-flask-cors
-flask-limiter
-pytube
-youtube-search-python
-youtube_dl
-pydub
-gunicorn
+flask>=2.3.0
+flask-cors>=4.0.0
+flask-limiter>=3.5.0
+youtubesearchpython>=1.6.6
+yt-dlp>=2023.7.6
+pydub>=0.25.1
+gunicorn>=21.2.0

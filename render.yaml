@@ -4,8 +4,5 @@ services:
     env: python
     region: oregon
     plan: free
-    buildCommand: |
-      apt-get update && \
-      apt-get install -y ffmpeg && \
-      pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn --bind 0.0.0.0:$PORT main:app --timeout 120

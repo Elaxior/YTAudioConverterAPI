@@ -6,3 +6,6 @@ services:
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn --bind 0.0.0.0:$PORT main:app --timeout 120
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
